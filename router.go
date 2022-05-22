@@ -7,6 +7,7 @@ import (
 
 func initRouter(r *gin.Engine) {
 	// public directory is used to serve static resources
+	// 配置静态web目录，第一个参数表示路由，第二个参数表示映射目录
 	r.Static("/static", "./public")
 
 	apiRouter := r.Group("/douyin")

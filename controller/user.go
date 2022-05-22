@@ -33,16 +33,20 @@ type UserResponse struct {
 }
 
 func Register(c *gin.Context) {
+	// 通过 Query 方法接收表单传输过来的 username 和 password 字段数据
 	username := c.Query("username")
 	password := c.Query("password")
 
+	// 设置 token 为username + password
 	token := username + password
 
+	//如果数据库存在该 token，则 exist 为 1，返回错误信息
 	if _, exist := usersLoginInfo[token]; exist {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
 	} else {
+		// 否则
 		atomic.AddInt64(&userIdSequence, 1)
 		newUser := User{
 			Id:   userIdSequence,
