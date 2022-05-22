@@ -10,9 +10,11 @@ func initRouter(r *gin.Engine) {
 	// 配置静态web目录，第一个参数表示路由，第二个参数表示映射目录
 	r.Static("/static", "./public")
 
+	// 配置路由分组 /douyin
 	apiRouter := r.Group("/douyin")
 
 	// basic apis
+	// 分组下的路由
 	apiRouter.GET("/feed/", controller.Feed)
 	apiRouter.GET("/user/", controller.UserInfo)
 	apiRouter.POST("/user/register/", controller.Register)

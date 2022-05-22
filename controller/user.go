@@ -9,15 +9,17 @@ import (
 // usersLoginInfo use map to store user info, and key is username+password for demo
 // user data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-var usersLoginInfo = map[string]User{
-	"zhangleidouyin": {
-		Id:            1,
-		Name:          "zhanglei",
-		FollowCount:   10,
-		FollowerCount: 5,
-		IsFollow:      true,
-	},
-}
+//var usersLoginInfo = map[string]User{
+//	"zhangleidouyin": {
+//		Id:            1,
+//		Name:          "zhanglei",
+//		FollowCount:   10,
+//		FollowerCount: 5,
+//		IsFollow:      true,
+//	},
+//}
+
+var usersLoginInfo = map[string]User{}
 
 var userIdSequence = int64(1)
 
@@ -38,21 +40,25 @@ func Register(c *gin.Context) {
 	password := c.Query("password")
 
 	// 设置 token 为username + password
-	token := username + password
+	//token := username + password
 
-	//如果数据库存在该 token，则 exist 为 1，返回错误信息
-	if _, exist := usersLoginInfo[token]; exist {
+	//如果数据库存在该 token，则 checkUserExist 返回ture
+	if _, exist := checkUserExist(username, password); exist {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
 	} else {
-		// 否则
+		// 不存在该 token ，可以注册，
 		atomic.AddInt64(&userIdSequence, 1)
-		newUser := User{
-			Id:   userIdSequence,
-			Name: username,
+		newUser := UserLoginInfo{
+			Id:       userIdSequence,
+			Username: username,
+			Pwd:      password,
+			Token:    username + password,
 		}
-		usersLoginInfo[token] = newUser
+		addUserInDB(newUser)
+
+		//usersLoginInfo[token] = newUser
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
 			UserId:   userIdSequence,
@@ -67,13 +73,15 @@ func Login(c *gin.Context) {
 
 	token := username + password
 
-	if user, exist := usersLoginInfo[token]; exist {
+	//用户存在
+	if _, exist := checkUserExist(username, password); exist {
+		// POST 传值，转换为JSON数据
 		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   user.Id,
-			Token:    token,
+			Response: Response{StatusCode: 0, StatusMsg: "User Login Success"},
+			//UserId:   username,
+			Token: token,
 		})
-	} else {
+	} else { // 用户不存在
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
 		})
@@ -82,11 +90,13 @@ func Login(c *gin.Context) {
 
 func UserInfo(c *gin.Context) {
 	token := c.Query("token")
+	//username := c.Query("username")
+	//password := c.Query("password")
 
-	if user, exist := usersLoginInfo[token]; exist {
+	if _, exist := UserLogin(token); exist {
 		c.JSON(http.StatusOK, UserResponse{
-			Response: Response{StatusCode: 0},
-			User:     user,
+			Response: Response{StatusCode: 0, StatusMsg: "User Login Success"},
+			//User:     username,
 		})
 	} else {
 		c.JSON(http.StatusOK, UserResponse{
