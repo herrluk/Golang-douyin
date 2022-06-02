@@ -1,5 +1,7 @@
 package controller
 
+import "gorm.io/gorm"
+
 type Response struct {
 	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg,omitempty"`
@@ -23,9 +25,23 @@ type Comment struct {
 }
 
 type User struct {
-	Id            int64  `json:"id,omitempty"`
+	gorm.Model
+	//Id            int64  `json:"id,omitempty"`
 	Name          string `json:"name,omitempty"`
+	Password      string `json:"password,omitempty"`
+	Token         string `json:"token,omitempty"`
 	FollowCount   int64  `json:"follow_count,omitempty" gorm:"default 0"`
 	FollowerCount int64  `json:"follower_count,omitempty" gorm:"default 0"`
 	IsFollow      bool   `json:"is_follow,omitempty"`
+}
+
+type UserLoginResponse struct {
+	Response
+	UserId uint   `json:"user_id,omitempty"`
+	Token  string `json:"token"`
+}
+
+type UserResponse struct {
+	Response
+	User User `json:"user"`
 }
